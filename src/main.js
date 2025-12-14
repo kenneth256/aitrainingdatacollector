@@ -54,6 +54,9 @@ startUrls.forEach(url => console.log(`  ✓ ${url.userData.platform}: ${url.url.
 const seenHashes = new Set();
 
 const crawler = new PuppeteerCrawler({
+     proxyConfiguration: await Actor.createProxyConfiguration({
+        groups: ['RESIDENTIAL'], 
+    }),
     async requestHandler({ request, page, log }) {
         await page.setExtraHTTPHeaders({
             'Accept': 'application/json, text/html',
