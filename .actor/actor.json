@@ -1,0 +1,50 @@
+{
+  "title": "AI Training Data Collector Input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "platforms": {
+      "title": "Platforms to Scrape",
+      "type": "array",
+      "description": "Select which platforms to collect data from",
+      "editor": "select",
+      "items": {
+        "type": "string",
+        "enum": ["reddit", "twitter", "news"]
+      },
+      "default": ["reddit"],
+      "prefill": ["reddit"]
+    },
+    "keywords": {
+      "title": "Search Keywords",
+      "type": "array",
+      "description": "Topics or keywords to search for",
+      "editor": "stringList",
+      "default": ["artificial intelligence"],
+      "prefill": ["machine learning", "AI training", "deep learning"]
+    },
+    "maxRecords": {
+      "title": "Maximum Records",
+      "type": "integer",
+      "description": "Maximum number of records to collect",
+      "default": 1000,
+      "minimum": 10,
+      "maximum": 50000
+    },
+    "includeImages": {
+      "title": "Include Images",
+      "type": "boolean",
+      "description": "Extract images from posts/articles",
+      "default": true
+    },
+    "minTextLength": {
+      "title": "Minimum Text Length",
+      "type": "integer",
+      "description": "Minimum characters required for text content",
+      "default": 50,
+      "minimum": 10,
+      "maximum": 1000
+    }
+  },
+  "required": ["platforms", "keywords", "maxRecords"]
+}
