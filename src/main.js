@@ -8,7 +8,7 @@ await Actor.init();
 // Getting user input
 const input = await Actor.getInput() || {};
 const {
-     platforms = ['hackernews'],
+     platforms = ['x'],
     keywords = ['artificial intelligence'],
     maxRecords = 1000,
     includeImages = true,
@@ -26,7 +26,7 @@ for (const platform of platforms) {
                 url: `https://www.reddit.com/search/?q=${encodeURIComponent(keyword)}&sort=top`,
                 userData: { platform: 'reddit', keyword },
             });
-        } else if (platform === 'twitter') {
+        } else if (platform === 'x') {
             startUrls.push({
                 url: `https://twitter.com/search?q=${encodeURIComponent(keyword)}&src=typed_query`,
                 userData: { platform: 'twitter', keyword },
