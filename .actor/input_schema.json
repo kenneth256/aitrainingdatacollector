@@ -1,18 +1,51 @@
 {
-    "title": "PuppeteerCrawler Template",
+    "title": "AI Training Data Collector Input",
     "type": "object",
     "schemaVersion": 1,
     "properties": {
-        "startUrls": {
-            "title": "Start URLs",
+        "platforms": {
+            "title": "Platforms to scrape",
             "type": "array",
-            "description": "URLs to start with.",
-            "editor": "requestListSources",
-            "prefill": [
-                {
-                    "url": "https://apify.com"
-                }
-            ]
+            "description": "Select which platforms to collect data from",
+            "editor": "select",
+            "default": ["hackernews"],
+            "items": {
+                "type": "string",
+                "enum": ["hackernews", "reddit", "x", "news"]
+            },
+            "uniqueItems": true
+        },
+        "keywords": {
+            "title": "Search keywords",
+            "type": "array",
+            "description": "Topics to search for (one per line)",
+            "editor": "stringList",
+            "default": ["artificial intelligence"],
+            "items": {
+                "type": "string"
+            }
+        },
+        "maxRecords": {
+            "title": "Maximum records to collect",
+            "type": "integer",
+            "description": "Stop after collecting this many items",
+            "default": 1000,
+            "minimum": 1,
+            "maximum": 10000
+        },
+        "includeImages": {
+            "title": "Include images",
+            "type": "boolean",
+            "description": "Extract image URLs from posts",
+            "default": true
+        },
+        "minTextLength": {
+            "title": "Minimum text length",
+            "type": "integer",
+            "description": "Only keep posts with at least this many characters",
+            "default": 50,
+            "minimum": 0
         }
-    }
+    },
+    "required": ["platforms", "keywords"]
 }
