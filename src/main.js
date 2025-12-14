@@ -6,24 +6,27 @@ import crypto from 'crypto';
 await Actor.init();
 
 // Getting user input
-const input = await Actor.getInput() || {};
-const {
-     platforms = ['x'],
-    keywords = ['artificial intelligence'],
-    maxRecords = 1000,
-    includeImages = true,
-    minTextLength = 50,
-} = input;
+const input = await Actor.getInput();
+
+const platforms = (input && input.platforms) || ['hackernews', 'reddit'];
+const keywords = (input && input.keywords) || ['artificial intelligence', 'machine learning', 'data science'];
+const maxRecords = (input && input.maxRecords) || 1000;
+const includeImages = (input && input.includeImages !== undefined) ? input.includeImages : true;
+const minTextLength = (input && input.minTextLength) || 50;
 
 
 
 // Build starting URLs
 const startUrls = [];
+
+
 for (const platform of platforms) {
+    console.log(`🔄 Processing platform: ${platform}`);
     for (const keyword of keywords) {
+        console.log(`  📝 Keyword: ${keyword}`);
         if (platform === 'reddit') {
             startUrls.push({
-                url: `https://www.reddit.com/search/?q=${encodeURIComponent(keyword)}&sort=top`,
+                url: `https://www.reddit.com/search.json?q=${encodeURIComponent(keyword)}&sort=top&limit=100`,
                 userData: { platform: 'reddit', keyword },
             });
         } else if (platform === 'x') {
@@ -37,21 +40,21 @@ for (const platform of platforms) {
                 userData: { platform: 'news', keyword },
             });
         } else if (platform === 'hackernews') {
-                startUrls.push({
-        url: `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(keyword)}&tags=story&hitsPerPage=50`,
-        userData: { platform: 'hackernews', keyword },
-    });
-
+            startUrls.push({
+                url: `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(keyword)}&tags=story&hitsPerPage=50`,
+                userData: { platform: 'hackernews', keyword },
+            });
         }
+        console.log(`  ✅ Added URL for ${platform}`);
     }
 }
 
 let recordCount = 0;
+startUrls.forEach(url => console.log(`  ✓ ${url.userData.platform}: ${url.url.substring(0, 80)}...`));
 const seenHashes = new Set();
 
 const crawler = new PuppeteerCrawler({
     async requestHandler({ request, page, log }) {
-        // Set proper headers to look like a real browser
         await page.setExtraHTTPHeaders({
             'Accept': 'application/json, text/html',
             'Accept-Language': 'en-US,en;q=0.9',
@@ -226,15 +229,11 @@ async function scrapeReddit(page, includeImages) {
 }
 
 async function scrapeHackerNews(page) {
-    console.log('📥 Fetching HackerNews data...');
-    
     const jsonData = await page.evaluate(() => {
         const preTag = document.querySelector('pre');
         if (preTag) return preTag.textContent;
         return document.body.textContent;
     });
-    
-    console.log(`📄 Received ${jsonData.length} characters`);
     
     try {
         const data = JSON.parse(jsonData);

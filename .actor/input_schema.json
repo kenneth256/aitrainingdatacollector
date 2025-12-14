@@ -8,7 +8,7 @@
             "type": "array",
             "description": "Select which platforms to collect data from",
             "editor": "select",
-            "default": ["hackernews"],
+            "default": ["hackernews", "reddit", "x", "news"],
             "items": {
                 "type": "string",
                 "enum": ["hackernews", "reddit", "x", "news"]
@@ -20,7 +20,7 @@
             "type": "array",
             "description": "Topics to search for (one per line)",
             "editor": "stringList",
-            "default": ["artificial intelligence"],
+            "default": ["artificial intelligence", "data science", "Elections in uganda"],
             "items": {
                 "type": "string"
             }
