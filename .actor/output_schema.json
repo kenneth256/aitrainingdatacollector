@@ -1,81 +1,43 @@
 {
-  "actorSpecification": 1,
-  "name": "aitrainingdatacollector",
-  "title": "AI Training Data Collector",
-  "description": "Automated scraper collecting text data from HackerNews, Reddit, Twitter/X, and news sites. Search any topic, set limits, filter quality. Export as JSON/CSV. Perfect for AI training datasets and research.",
-  "version": "0.1",
-  "meta": {
-    "templateId": "puppeteer-crawler"
-  },
-  "input": "./input_schema.json",
-  "storages": {
-    "dataset": {
-      "actorSpecification": 1,
-      "title": "Scraped Training Data",
-      "description": "AI training data collected from multiple platforms",
-      "fields": "./output_schema.json",
-      "views": {
-        "overview": {
-          "title": "All Results",
-          "description": "Overview of all scraped data",
-          "transformation": {
-            "fields": [
-              "source",
-              "keyword", 
-              "content_type",
-              "text.title",
-              "metadata.score",
-              "metadata.comments",
-              "url"
-            ]
-          },
-          "display": {
-            "component": "table",
-            "properties": {
-              "source": {
-                "label": "Platform",
-                "format": "text"
-              },
-              "keyword": {
-                "label": "Keyword",
-                "format": "text"
-              },
-              "content_type": {
-                "label": "Type",
-                "format": "text"
-              },
-              "text.title": {
-                "label": "Title",
-                "format": "text"
-              },
-              "metadata.score": {
-                "label": "Score",
-                "format": "number"
-              },
-              "metadata.comments": {
-                "label": "Comments",
-                "format": "number"
-              },
-              "url": {
-                "label": "Source URL",
-                "format": "link"
-              }
-            }
-          }
-        },
-        "byPlatform": {
-          "title": "By Platform",
-          "description": "Group results by platform",
-          "transformation": {
-            "fields": [
-              "source",
-              "keyword",
-              "text.title",
-              "url"
-            ]
-          }
-        }
-      }
+  "title": "AI Training Data",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "id": {
+      "type": "string",
+      "title": "ID",
+      "description": "Unique identifier",
+      "editor": "textfield"
+    },
+    "source": {
+      "type": "string",
+      "title": "Platform",
+      "description": "Source platform",
+      "editor": "textfield"
+    },
+    "keyword": {
+      "type": "string",
+      "title": "Keyword",
+      "description": "Search keyword used",
+      "editor": "textfield"
+    },
+    "content_type": {
+      "type": "string",
+      "title": "Content Type",
+      "description": "Type of content",
+      "editor": "textfield"
+    },
+    "url": {
+      "type": "string",
+      "title": "URL",
+      "description": "Source URL",
+      "editor": "textfield"
+    },
+    "scraped_at": {
+      "type": "string",
+      "title": "Scraped At",
+      "description": "Timestamp",
+      "editor": "textfield"
     }
   }
 }

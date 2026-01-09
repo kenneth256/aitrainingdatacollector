@@ -16,7 +16,39 @@
         "timeoutSecs": 3600,
         "memoryMbytes": 4096
     },
-     "storages": {
-        "dataset": "./output_schema.json"
+    "storages": {
+        "dataset": {
+            "actorSpecification": 1,
+            "fields": {
+                "id": {
+                    "type": "string",
+                    "title": "ID"
+                },
+                "source": {
+                    "type": "string",
+                    "title": "Platform"
+                },
+                "keyword": {
+                    "type": "string",
+                    "title": "Keyword"
+                },
+                "content_type": {
+                    "type": "string",
+                    "title": "Type"
+                },
+                "url": {
+                    "type": "string",
+                    "title": "URL"
+                },
+                "text": {
+                    "type": "object",
+                    "title": "Text Content"
+                },
+                "scraped_at": {
+                    "type": "string",
+                    "title": "Scraped At"
+                }
+            }
+        }
     }
-    }
+}
