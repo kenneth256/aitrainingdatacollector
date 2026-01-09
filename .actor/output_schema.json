@@ -3,7 +3,7 @@
   "type": "object",
   "schemaVersion": 1,
   "properties": {
-    "id": {
+    "record_id": {
       "type": "string",
       "title": "ID",
       "description": "Unique identifier",
@@ -13,7 +13,8 @@
       "type": "string",
       "title": "Platform",
       "description": "Source platform",
-      "editor": "textfield"
+      "editor": "select",
+      "enum": ["reddit", "hackernews", "twitter", "news"]
     },
     "keyword": {
       "type": "string",
@@ -25,7 +26,8 @@
       "type": "string",
       "title": "Content Type",
       "description": "Type of content",
-      "editor": "textfield"
+      "editor": "select",
+      "enum": ["text", "text_image"]
     },
     "url": {
       "type": "string",
@@ -33,10 +35,28 @@
       "description": "Source URL",
       "editor": "textfield"
     },
+    "text": {
+      "type": "object",
+      "title": "Text Content",
+      "description": "Extracted text",
+      "editor": "json"
+    },
+    "media": {
+      "type": "object",
+      "title": "Media",
+      "description": "Images and other media",
+      "editor": "json"
+    },
+    "metadata": {
+      "type": "object",
+      "title": "Metadata",
+      "description": "Platform-specific metadata",
+      "editor": "json"
+    },
     "scraped_at": {
       "type": "string",
       "title": "Scraped At",
-      "description": "Timestamp",
+      "description": "Timestamp when scraped",
       "editor": "textfield"
     }
   }

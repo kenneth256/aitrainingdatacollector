@@ -21,9 +21,7 @@ const startUrls = [];
 
 
 for (const platform of platforms) {
-    console.log(`🔄 Processing platform: ${platform}`);
     for (const keyword of keywords) {
-        console.log(`  📝 Keyword: ${keyword}`);
         if (platform === 'reddit') {
             startUrls.push({
                 url: `https://www.reddit.com/search.json?q=${encodeURIComponent(keyword)}&sort=top&limit=100`,
@@ -199,7 +197,7 @@ async function scrapeReddit(page, includeImages) {
                 }
                 
                 results.push({
-                    id: `reddit_${post.id}`,
+                    record_id: `reddit_${post.id}`,
                     source: 'reddit',
                     url: `https://reddit.com${post.permalink}`,
                     content_type: images.length > 0 ? 'text_image' : 'text',
@@ -251,7 +249,7 @@ async function scrapeHackerNews(page) {
                 const text = hit.story_text || hit.title;
                 
                 results.push({
-                    id: `hn_${hit.objectID}`,
+                     record_id: `hn_${hit.objectID}`,
                     source: 'hackernews',
                     url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
                     content_type: 'text',
@@ -303,7 +301,7 @@ async function scrapeTwitter(page, includeImages) {
                         .slice(0, 4) : [];
                 
                 results.push({
-                    id: `twitter_${Date.now()}_${index}`,
+                     record_id: `twitter_${Date.now()}_${index}`,
                     source: 'twitter',
                     url: window.location.href,
                     content_type: images.length > 0 ? 'text_image' : 'text',
@@ -350,7 +348,7 @@ async function scrapeNews(page) {
                 if (!text) return;
                 
                 results.push({
-                    id: `news_${Date.now()}_${index}`,
+                     record_id: `news_${Date.now()}_${index}`,
                     source: 'news',
                     url: linkEl?.href || window.location.href,
                     content_type: 'text',
