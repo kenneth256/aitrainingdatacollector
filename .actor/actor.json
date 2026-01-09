@@ -20,10 +20,6 @@
         "dataset": {
             "actorSpecification": 1,
             "fields": {
-                "id": {
-                    "type": "string",
-                    "title": "ID"
-                },
                 "source": {
                     "type": "string",
                     "title": "Platform"
@@ -43,6 +39,14 @@
                 "text": {
                     "type": "object",
                     "title": "Text Content"
+                },
+                "metadata": {
+                    "type": "object",
+                    "title": "Metadata"
+                },
+                "media": {
+                    "type": "object",
+                    "title": "Media"
                 },
                 "scraped_at": {
                     "type": "string",
