@@ -144,8 +144,17 @@ await Actor.exit();
 async function scrapeReddit(page, includeImages) {
     console.log('📥 Fetching Reddit JSON data...');
     
+<<<<<<< HEAD
     // Get the JSON content from the page
     const content = await page.content();
+=======
+       const token = process.env.GITHUB_TOKEN;
+urls.push({
+    url: `https://api.github.com/search/repositories?q=${encodeURIComponent(keyword)}&sort=stars&per_page=100&page=${page}`,
+    userData: { platform: 'github', keyword, page },
+    headers: token ? { Authorization: `token ${token}` } : {}
+});
+>>>>>>> 0d59546... fixed github
     
     // The browser shows JSON in a <pre> tag, so let's extract it
     const jsonData = await page.evaluate(() => {
