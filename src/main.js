@@ -8,7 +8,7 @@ await Actor.init();
 // Getting user input
 const input = await Actor.getInput();
 
-const platforms = (input && input.platforms) || ['hackernews', 'reddit'];
+const platforms = (input && input.platforms) || ['hackernews', 'reddit', 'github', 'devto', 'medium', 'news'];
 const keywords = (input && input.keywords) || ['artificial intelligence', 'machine learning', 'data science'];
 const maxRecords = (input && input.maxRecords) || 1000;
 const includeImages = (input && input.includeImages !== undefined) ? input.includeImages : true;
@@ -34,13 +34,28 @@ for (const platform of platforms) {
             });
         } else if (platform === 'news') {
             startUrls.push({
-                url: `https://news.google.com/search?q=${encodeURIComponent(keyword)}`,
+                url: `https://news.google.com/search?q=${encodeURIComponent(keyword)}&hl=en-US&gl=US&ceid=US:en`,
                 userData: { platform: 'news', keyword },
             });
         } else if (platform === 'hackernews') {
             startUrls.push({
                 url: `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(keyword)}&tags=story&hitsPerPage=50`,
                 userData: { platform: 'hackernews', keyword },
+            });
+        } else if (platform === 'github') {
+            startUrls.push({
+                url: `https://api.github.com/search/repositories?q=${encodeURIComponent(keyword)}&sort=stars&per_page=100`,
+                userData: { platform: 'github', keyword },
+            });
+        } else if (platform === 'devto') {
+            startUrls.push({
+                url: `https://dev.to/search?q=${encodeURIComponent(keyword)}`,
+                userData: { platform: 'devto', keyword },
+            });
+        } else if (platform === 'medium') {
+            startUrls.push({
+                url: `https://medium.com/search?q=${encodeURIComponent(keyword)}`,
+                userData: { platform: 'medium', keyword },
             });
         }
         console.log(`  ✅ Added URL for ${platform}`);
@@ -79,8 +94,14 @@ const crawler = new PuppeteerCrawler({
                 results = await scrapeTwitter(page, includeImages);
             } else if (platform === 'news') {
                 results = await scrapeNews(page);
-            }else if (platform === 'hackernews') {
+            } else if (platform === 'hackernews') {
                 results = await scrapeHackerNews(page);
+            } else if (platform === 'github') {
+                results = await scrapeGitHub(page);
+            } else if (platform === 'devto') {
+                results = await scrapeDevTo(page);
+            } else if (platform === 'medium') {
+                results = await scrapeMedium(page);
             } else {
                 log.warning(`Unsupported platform: ${platform}`);
                 return;
@@ -277,6 +298,180 @@ async function scrapeHackerNews(page) {
         return [];
     }
 }
+
+async function scrapeGitHub(page) {
+    console.log('📥 Fetching GitHub API data...');
+    
+    const jsonData = await page.evaluate(() => {
+        const preTag = document.querySelector('pre');
+        if (preTag) return preTag.textContent;
+        return document.body.textContent;
+    });
+    
+    try {
+        const data = JSON.parse(jsonData);
+        const results = [];
+        
+        if (data.items && Array.isArray(data.items)) {
+            console.log(`✅ Found ${data.items.length} GitHub repositories`);
+            
+            data.items.forEach((repo) => {
+                const fullText = `${repo.name}\n\n${repo.description || ''}${repo.topics ? '\n\nTopics: ' + repo.topics.join(', ') : ''}`;
+                
+                results.push({
+                    record_id: `github_${repo.id}`,
+                    source: 'github',
+                    url: repo.html_url,
+                    content_type: 'text',
+                    text: {
+                        title: repo.full_name,
+                        content: fullText,
+                    },
+                    media: {
+                        images: [],
+                    },
+                    metadata: {
+                        language: repo.language,
+                        stars: repo.stargazers_count,
+                        forks: repo.forks_count,
+                        open_issues: repo.open_issues_count,
+                        created: repo.created_at,
+                        updated: repo.updated_at,
+                        author: repo.owner.login,
+                    },
+                });
+            });
+        }
+        
+        return results;
+        
+    } catch (error) {
+        console.error('❌ Error parsing GitHub JSON:', error.message);
+        return [];
+    }
+}
+
+async function scrapeDevTo(page) {
+    console.log('📥 Fetching Dev.to data...');
+    
+    try {
+        await page.waitForSelector('article, .crayons-story', { timeout: 10000 });
+        
+        const results = await page.evaluate(() => {
+            const results = [];
+            const articles = document.querySelectorAll('article.crayons-story, .crayons-story');
+            
+            articles.forEach((article, index) => {
+                if (index >= 30) return;
+                
+                try {
+                    const titleEl = article.querySelector('h2 a, h3 a, .crayons-story__title a');
+                    const snippetEl = article.querySelector('.crayons-story__snippet, p');
+                    const authorEl = article.querySelector('.crayons-story__secondary a, [data-user-id]');
+                    const tagsEls = article.querySelectorAll('.crayons-tag, .tag');
+                    
+                    const title = titleEl?.textContent?.trim() || '';
+                    const snippet = snippetEl?.textContent?.trim() || '';
+                    const text = `${title}\n\n${snippet}`.trim();
+                    const url = titleEl?.href || '';
+                    
+                    if (!text || !url) return;
+                    
+                    const tags = Array.from(tagsEls).map(t => t.textContent.trim()).filter(Boolean);
+                    
+                    results.push({
+                        record_id: `devto_${Date.now()}_${index}`,
+                        source: 'devto',
+                        url: url.startsWith('http') ? url : `https://dev.to${url}`,
+                        content_type: 'text',
+                        text: {
+                            title: title,
+                            content: text,
+                        },
+                        media: {
+                            images: [],
+                        },
+                        metadata: {
+                            author: authorEl?.textContent?.trim() || '',
+                            tags: tags,
+                        },
+                    });
+                } catch (err) {
+                    console.error('Error parsing Dev.to article:', err);
+                }
+            });
+            
+            return results;
+        });
+        
+        console.log(`✅ Found ${results.length} Dev.to articles`);
+        return results;
+        
+    } catch (error) {
+        console.error('❌ Error scraping Dev.to:', error.message);
+        return [];
+    }
+}
+
+async function scrapeMedium(page) {
+    console.log('📥 Fetching Medium data...');
+    
+    try {
+        await page.waitForSelector('article, div[data-testid="story"]', { timeout: 10000 });
+        
+        const results = await page.evaluate(() => {
+            const results = [];
+            const articles = document.querySelectorAll('article, div[data-testid="story"]');
+            
+            articles.forEach((article, index) => {
+                if (index >= 30) return;
+                
+                try {
+                    const titleEl = article.querySelector('h2, h3, [data-testid="story-title"]');
+                    const snippetEl = article.querySelector('h3 + p, p, [data-testid="story-subtitle"]');
+                    const authorEl = article.querySelector('a[rel="author"], [data-testid="story-author"]');
+                    const linkEl = article.querySelector('a[href*="/"]');
+                    
+                    const title = titleEl?.textContent?.trim() || '';
+                    const snippet = snippetEl?.textContent?.trim() || '';
+                    const text = `${title}\n\n${snippet}`.trim();
+                    const url = linkEl?.href || '';
+                    
+                    if (!text || text.length < 20) return;
+                    
+                    results.push({
+                        record_id: `medium_${Date.now()}_${index}`,
+                        source: 'medium',
+                        url: url,
+                        content_type: 'text',
+                        text: {
+                            title: title,
+                            content: text,
+                        },
+                        media: {
+                            images: [],
+                        },
+                        metadata: {
+                            author: authorEl?.textContent?.trim() || '',
+                        },
+                    });
+                } catch (err) {
+                    console.error('Error parsing Medium article:', err);
+                }
+            });
+            
+            return results;
+        });
+        
+        console.log(`✅ Found ${results.length} Medium articles`);
+        return results;
+        
+    } catch (error) {
+        console.error('❌ Error scraping Medium:', error.message);
+        return [];
+    }
+}
+
 async function scrapeTwitter(page, includeImages) {
     await page.waitForSelector('article[data-testid="tweet"]', { timeout: 10000 });
     
@@ -327,49 +522,63 @@ async function scrapeTwitter(page, includeImages) {
 }
 
 async function scrapeNews(page) {
-    await page.waitForSelector('article, .article', { timeout: 10000 });
+    console.log('📥 Fetching Google News data...');
     
-    return await page.evaluate(() => {
-        const results = [];
-        const articles = document.querySelectorAll('article, .article');
+    try {
+        await page.waitForSelector('article, c-wiz, a[href*="/articles/"]', { timeout: 10000 });
         
-        articles.forEach((article, index) => {
-            if (index >= 15) return;
+        const results = await page.evaluate(() => {
+            const results = [];
+            const articles = document.querySelectorAll('article, c-wiz[jsrenderer]');
             
-            try {
-                const titleEl = article.querySelector('h2, h3, .title');
-                const snippetEl = article.querySelector('p, .snippet, .description');
-                const linkEl = article.querySelector('a');
+            articles.forEach((article, index) => {
+                if (index >= 20) return;
                 
-                const title = titleEl?.textContent?.trim() || '';
-                const snippet = snippetEl?.textContent?.trim() || '';
-                const text = `${title}\n\n${snippet}`.trim();
-                
-                if (!text) return;
-                
-                results.push({
-                     record_id: `news_${Date.now()}_${index}`,
-                    source: 'news',
-                    url: linkEl?.href || window.location.href,
-                    content_type: 'text',
-                    text: {
-                        title: title,
-                        content: snippet,
-                    },
-                    media: {
-                        images: [],
-                    },
-                    metadata: {
-                        source_site: new URL(linkEl?.href || window.location.href).hostname,
-                    },
-                });
-            } catch (err) {
-                console.error('Error parsing article:', err);
-            }
+                try {
+                    const titleEl = article.querySelector('h3, h4, a[aria-label]');
+                    const snippetEl = article.querySelector('p, span');
+                    const linkEl = article.querySelector('a[href]');
+                    const sourceEl = article.querySelector('[data-n-tid]');
+                    
+                    const title = titleEl?.textContent?.trim() || '';
+                    const snippet = snippetEl?.textContent?.trim() || '';
+                    const text = snippet ? `${title}\n\n${snippet}`.trim() : title;
+                    
+                    if (!text || text.length < 20) return;
+                    
+                    const url = linkEl?.href || window.location.href;
+                    
+                    results.push({
+                        record_id: `news_${Date.now()}_${index}`,
+                        source: 'news',
+                        url: url,
+                        content_type: 'text',
+                        text: {
+                            title: title,
+                            content: text,
+                        },
+                        media: {
+                            images: [],
+                        },
+                        metadata: {
+                            source_site: sourceEl?.textContent?.trim() || new URL(url).hostname,
+                        },
+                    });
+                } catch (err) {
+                    console.error('Error parsing news article:', err);
+                }
+            });
+            
+            return results;
         });
         
+        console.log(`✅ Found ${results.length} news articles`);
         return results;
-    });
+        
+    } catch (error) {
+        console.error('❌ Error scraping Google News:', error.message);
+        return [];
+    }
 }
 
 // ==================== UTILITY FUNCTIONS ====================
